@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>房贷</title>
+    <!-- 引入 echarts.js -->
+    <script src="LoadHelper.js"></script>
+    <script src="echarts.min.js"></script>
+</head>
+<body style="background-color: #eee;">
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div style="width:100%;height:250px;display: flex;align-items: center;flex-direction: column;">
+        <h3>房贷计算明细</h3>
+        <div style="width:100%;height:70px; display: flex;justify-content: space-around;align-items: center;">
+            <div><span>请输入本金:</span><input id="capitalValue" type="text" placeholder="单位：元" name=""  style="width:120px;height: 30px;margin-left: 10px" /></div>
+            <div><span>请输入利率:</span><input id="ratioValue" type="text" placeholder="单位：100%" name=""  style="width:120px;height: 30px;margin-left: 10px" /></div>
+            <div><span>请输入贷款年限:</span><input id="monthValue" placeholder="单位：年" type="text" name=""  style="width:120px;height: 30px;margin-left: 10px" /></div>
+            <div><span>请输入起息日:</span><input id="startDate" type="text" placeholder="例子：2020-11-06" name=""  style="width:120px;height: 30px;margin-left: 10px" /></div>
+        </div>
+        <div style="width:400px;display: flex;justify-content: space-around;">
+            <span id="mBtn" style="width:120px;height:40px;background-color: #269073;color: white;font-size: 18px;display: flex;justify-content: center;align-items: center;border-radius: 5px;margin-top: 30px;">计算本金利息</span>
+            <span id="mMonthPayBtn" style="width:120px;height:40px;background-color: #269073;color: white;font-size: 18px;display: flex;justify-content: center;align-items: center;border-radius: 5px;margin-top: 30px;">计算月供明细</span>
+        </div>
+    </div>
+    <div id="main" style="width: 100%;height:500px;"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 点击按钮
+        let mBtn = document.getElementById("mBtn");
+
+        // 按钮点击事件
+        mBtn.onclick = function(){
+
+            // 本金
+            let capitalValue = document.getElementById("capitalValue").value*1;
+
+            // 利率
+            let ratioValue = document.getElementById("ratioValue").value/100;
+
+            // 贷款月数
+            let monthValue = document.getElementById("monthValue").value*12;
+
+            // 起息日
+            let startDate = document.getElementById("startDate").value;
+
+
+
+            if(capitalValue==""||ratioValue==""||monthValue==""||startDate==""){
+                alert("请填写完整");
+                return;
+            }
+
+            let mLoadHelper = new LoadHelper(capitalValue,monthValue,ratioValue,startDate);
+
+            // 月供
+            let monthPay = mLoadHelper.getMonthPay();
+
+            //  第几期
+            let nDate = [];
+
+            // 已还本金
+            let captialMoney = [];
+
+            // 已还利息
+            let rationMoney = [];
+
+            // 剩余本金
+            let reCaptialMoney = [];
+
+            for(let i=1;i<=monthValue;i++){
+                nDate.push(`第${i}期`);
+                captialMoney.push(mLoadHelper.payTotalCapital(i));
+                rationMoney.push(mLoadHelper.payTotalRation(i));
+                reCaptialMoney.push(mLoadHelper.needPayCaptial(i));
+            }
+
+             // 指定图表的配置项和数据
+        var option = {
+                    title: {
+                        text: '月供是：'+monthPay
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: ['总还本金', '总还利息', '剩余本金']
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: nDate
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            name: '总还本金',
+                            type: 'line',
+                            stack: '总量1',
+                            data:captialMoney
+
+                       },
+                        {
+                            name: '总还利息',
+                            type: 'line',
+                            stack: '总量2',
+                            data: rationMoney
+
+                        },
+                        {
+                            name: '剩余本金',
+                            type: 'line',
+                            stack: '总量3',
+                            data:  reCaptialMoney
+
+                        } 
+                         
+                    ]
+                };
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+    };
+
+    // 月供
+    mMonthPayBtn.onclick = function(){
+        // 本金
+            let capitalValue = document.getElementById("capitalValue").value*1;
+
+            // 利率
+            let ratioValue = document.getElementById("ratioValue").value/100;
+
+            // 贷款月数
+            let monthValue = document.getElementById("monthValue").value*12;
+
+            // 起息日
+            let startDate = document.getElementById("startDate").value;
+
+
+
+            if(capitalValue==""||ratioValue==""||monthValue==""||startDate==""){
+                alert("请填写完整");
+                return;
+            }
+
+            let mLoadHelper = new LoadHelper(capitalValue,monthValue,ratioValue,startDate);
+
+            // 月供
+            let monthPay = mLoadHelper.getMonthPay();
+
+            //  第几期
+            let nDate = [];
+
+            // 已还本金
+            let captialMoney = [];
+
+            // 已还利息
+            let rationMoney = [];
+
+            // 月供
+            let reCaptialMoney = [];
+
+            for(let i=1;i<=monthValue;i++){
+                nDate.push(`第${i}期`);
+                captialMoney.push(mLoadHelper.getPayNMonthMoney(i));
+                rationMoney.push(mLoadHelper.getPayNMonthRation(i));
+                reCaptialMoney.push(mLoadHelper.getMonthPay());
+            }
+
+             // 指定图表的配置项和数据
+        var option = {
+                    title: {
+                        text: '月供是：'+monthPay
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: ['需还本金', '需还利息', '当期月供']
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: nDate
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            name: '需还本金',
+                            type: 'line',
+                            stack: '总量1',
+                            data:captialMoney
+
+                       },
+                        {
+                            name: '需还利息',
+                            type: 'line',
+                            stack: '总量2',
+                            data: rationMoney
+
+                        },
+                        {
+                            name: '当期月供',
+                            type: 'line',
+                            stack: '总量3',
+                            data:  reCaptialMoney
+
+                        } 
+                         
+                    ]
+                };
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+    }
+    </script>
+</body>
+</html>
